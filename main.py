@@ -1,11 +1,12 @@
 import os
-from time import sleep
 
 import requests
 import telegram
 from dotenv import find_dotenv, load_dotenv
 from requests.compat import urljoin
 from requests.exceptions import ConnectionError, ReadTimeout
+
+DEVMAN_BASE_URL = "https://dvmn.org/"
 
 DEVMAN_API_BASE_URL = "https://dvmn.org/api/"
 DEVMAN_REVIEWS_URL = "user_reviews"
@@ -51,10 +52,31 @@ def main():
             print(resp_data)
 
         if resp_data["status"] == "found":
-            bot.send_message(
-                chat_id=CHAT_ID,
-                text="Преподаватель проверил работу!"
-            )
+            messages = []
+            new_attempts = resp_data["new_attempts"]
+            for attempt in new_attempts:
+                attempt_result = (
+                    "К сожалению, в работе нашлись ошибки."
+                    if attempt["is_negative"]
+                    else "Преподавателю все понравилось, можно приступать к следующему уроку!"
+                )
+                lesson_title = attempt["lesson_title"]
+                lesson_url = attempt["lesson_url"]
+                message = "".join([
+                    "У Вас проверили работу",
+                    " ",
+                    f"\u00AB{lesson_title}\u00BB",
+                    "\n\n",
+                    attempt_result,
+                    "\n\n",
+                    urljoin(DEVMAN_BASE_URL, lesson_url)
+                ])
+                messages.append(message)
+            for message in messages:
+                bot.send_message(
+                    chat_id=CHAT_ID,
+                    text=message
+                )
             params["timestamp"] = resp_data["last_attempt_timestamp"]
             print(resp_data)
 
