@@ -2,6 +2,7 @@ import os
 from time import sleep
 
 import requests
+import telegram
 from dotenv import find_dotenv, load_dotenv
 from requests.compat import urljoin
 from requests.exceptions import ConnectionError, ReadTimeout
@@ -10,6 +11,8 @@ DEVMAN_API_BASE_URL = "https://dvmn.org/api/"
 DEVMAN_REVIEWS_URL = "user_reviews"
 DEVMAN_LONG_POLLING_URL = "long_polling"
 DEVMAN_TIMEOUT = 120
+
+SOCKS5_PROXY = "socks5h://94.182.189.29:443"
 
 
 def main():
@@ -20,6 +23,16 @@ def main():
     }
     params = {}
     url = urljoin(DEVMAN_API_BASE_URL, DEVMAN_LONG_POLLING_URL)
+
+    PROXY_KWARGS = {
+        'assert_hostname': 'False',
+        'cert_reqs': 'CERT_NONE'
+    }
+    req = telegram.utils.request.Request(
+        proxy_url=SOCKS5_PROXY,
+        urllib3_proxy_kwargs=PROXY_KWARGS
+    )
+    bot = telegram.Bot(token=token, request=req)
 
     while True:
         try:
