@@ -11,28 +11,22 @@ DEVMAN_API_BASE_URL = "https://dvmn.org/api/"
 DEVMAN_REVIEWS_URL = "user_reviews"
 DEVMAN_LONG_POLLING_URL = "long_polling"
 DEVMAN_TIMEOUT = 120
-
-SOCKS5_PROXY = "socks5h://94.182.189.29:443"
-
+CHAT_ID = 472955649
 
 def main():
-    token = os.getenv("DEVMAN_API_TOKEN")
+    devman_token = os.getenv("DEVMAN_API_TOKEN")
+    telegram_token = os.getenv("TELEGRAM_API_TOKEN")
+
     headers = {
-        "Authorization": f"Token {token}",
+        "Authorization": f"Token {devman_token}",
         "Content-Type": "application/json; charset=utf-8"
     }
     params = {}
     url = urljoin(DEVMAN_API_BASE_URL, DEVMAN_LONG_POLLING_URL)
 
-    PROXY_KWARGS = {
-        'assert_hostname': 'False',
-        'cert_reqs': 'CERT_NONE'
-    }
-    req = telegram.utils.request.Request(
-        proxy_url=SOCKS5_PROXY,
-        urllib3_proxy_kwargs=PROXY_KWARGS
-    )
-    bot = telegram.Bot(token=token, request=req)
+    # настройки прокси берет из переменной окружения 
+    req = telegram.utils.request.Request()
+    bot = telegram.Bot(token=telegram_token, request=req)
 
     while True:
         try:
@@ -57,10 +51,12 @@ def main():
             print(resp_data)
 
         if resp_data["status"] == "found":
-            print("got answer!!!")
-            break
-
-    print(response.text)
+            bot.send_message(
+                chat_id=CHAT_ID,
+                text="Преподаватель проверил работу!"
+            )
+            params["timestamp"] = resp_data["last_attempt_timestamp"]
+            print(resp_data)
 
 
 if __name__ == "__main__":
