@@ -14,6 +14,7 @@ DEVMAN_LONG_POLLING_URL = "long_polling"
 DEVMAN_TIMEOUT = 120
 CHAT_ID = 472955649
 
+
 def main():
     devman_token = os.getenv("DEVMAN_API_TOKEN")
     telegram_token = os.getenv("TELEGRAM_API_TOKEN")
@@ -25,7 +26,7 @@ def main():
     params = {}
     url = urljoin(DEVMAN_API_BASE_URL, DEVMAN_LONG_POLLING_URL)
 
-    # настройки прокси берет из переменной окружения 
+    # настройки прокси берет из переменной окружения
     req = telegram.utils.request.Request()
     bot = telegram.Bot(token=telegram_token, request=req)
 
