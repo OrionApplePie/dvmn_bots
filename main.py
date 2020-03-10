@@ -20,6 +20,21 @@ FAIL_ATTEMPTS_COUNT = 10
 SLEEP_TIME = 60 * 2
 
 
+class MyLogsHandler(logging.Handler):
+
+    def __init__(self, bot, chat_id):
+        self.bot = bot
+        self.chat_id = chat_id
+
+    def emit(self, record):
+        log_entry = self.format(record)
+
+        self.bot.send_message(
+            chat_id=self.chat_id,
+            text=logging
+        )
+
+
 def main():
     devman_token = os.getenv("DEVMAN_API_TOKEN")
     telegram_token = os.getenv("TELEGRAM_API_TOKEN")
@@ -36,10 +51,15 @@ def main():
     req = telegram.utils.request.Request()
     bot = telegram.Bot(token=telegram_token, request=req)
 
+    logger = logging.getLogger("Логер бота")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(MyLogsHandler(bot=bot, chat_id=telegram_chat_id))
+
     fail_count = 0
 
     while True:
         try:
+            logger.info("Попытка запроса к сервису.")
             response = requests.get(
                 url=url,
                 headers=headers,
@@ -102,7 +122,5 @@ def main():
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    logging.info("Запуск бота.")
     load_dotenv()
     main()
