@@ -1,3 +1,4 @@
+import logging
 import os
 from textwrap import dedent
 from time import sleep
@@ -58,7 +59,8 @@ def main():
         except ConnectionError as error:
             fail_count += 1
             if fail_count >= FAIL_ATTEMPTS_COUNT:
-                print(f"Too much connection attempts fail, waiting {SLEEP_TIME} secs.\n{error}\n")
+                print(
+                    f"Too much connection attempts fail, waiting {SLEEP_TIME} secs.\n{error}\n")
                 sleep(SLEEP_TIME)
             else:
                 print(f"Connection error, try again:\n{error}\n")
@@ -100,5 +102,7 @@ def main():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+    logging.info("Запуск бота.")
     load_dotenv()
     main()
