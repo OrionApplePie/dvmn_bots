@@ -23,6 +23,8 @@ SLEEP_TIME = 60 * 2
 class MyLogsHandler(logging.Handler):
 
     def __init__(self, bot, chat_id):
+        # super(MyLogsHandler, self).__init__()
+
         self.bot = bot
         self.chat_id = chat_id
 
@@ -31,7 +33,7 @@ class MyLogsHandler(logging.Handler):
 
         self.bot.send_message(
             chat_id=self.chat_id,
-            text=logging
+            text=log_entry
         )
 
 
