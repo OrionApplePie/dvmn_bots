@@ -23,7 +23,7 @@ SLEEP_TIME = 60 * 2
 class MyLogsHandler(logging.Handler):
 
     def __init__(self, bot, chat_id):
-        # super(MyLogsHandler, self).__init__()
+        super(MyLogsHandler, self).__init__()
 
         self.bot = bot
         self.chat_id = chat_id
@@ -57,11 +57,11 @@ def main():
     logger.setLevel(logging.DEBUG)
     logger.addHandler(MyLogsHandler(bot=bot, chat_id=telegram_chat_id))
 
+    logger.info("Бот запущен.")
     fail_count = 0
 
     while True:
         try:
-            logger.info("Попытка запроса к сервису.")
             response = requests.get(
                 url=url,
                 headers=headers,
@@ -69,24 +69,20 @@ def main():
                 timeout=DEVMAN_TIMEOUT,
             )
             response.raise_for_status()
-
-        except HTTPError as error:
-            print(f"Http error, try again: \n{error}\n")
+        except Exception:
+            logger.exception("Бот упал с ошибкой:")
             continue
 
-        except ReadTimeout as error:
-            print(f"Timeout error, try again:\n{error}\n")
-            continue
-
-        except ConnectionError as error:
+        except Exception:
             fail_count += 1
             if fail_count >= FAIL_ATTEMPTS_COUNT:
-                print(
-                    f"Too much connection attempts fail, waiting {SLEEP_TIME} secs.\n{error}\n")
+                logger.exception(
+                    f"Too much connection attempts fail, waiting {SLEEP_TIME} secs.\n"
+                )
                 sleep(SLEEP_TIME)
             else:
-                print(f"Connection error, try again:\n{error}\n")
-            continue
+                logger.exception("Бот упал с ошибкой:")
+                continue
 
         fail_count = 0
         resp_data = response.json()
