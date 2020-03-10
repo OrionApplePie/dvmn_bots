@@ -70,7 +70,7 @@ def main():
             )
             response.raise_for_status()
         except Exception:
-            logger.exception("Бот упал с ошибкой:")
+            logger.exception("Бот упал с ошибкой:\n")
             continue
 
         except Exception:
