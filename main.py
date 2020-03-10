@@ -69,19 +69,28 @@ def main():
                 timeout=DEVMAN_TIMEOUT,
             )
             response.raise_for_status()
-        except Exception:
-            logger.exception("Бот упал с ошибкой:\n")
+
+        except HTTPError as err:
+            logger.error("Бот упал с ошибкой:")
+            logger.error(err, exc_info=True)
             continue
 
-        except Exception:
+        except ReadTimeout as err:
+            logger.error("Бот упал с ошибкой:")
+            logger.error(err, exc_info=True)
+            continue
+
+        except ConnectionError as err:
             fail_count += 1
             if fail_count >= FAIL_ATTEMPTS_COUNT:
-                logger.exception(
+                logger.error(
                     f"Too much connection attempts fail, waiting {SLEEP_TIME} secs.\n"
                 )
+                logger.error(err, exc_info=True)
                 sleep(SLEEP_TIME)
             else:
-                logger.exception("Бот упал с ошибкой:")
+                logger.error("Бот упал с ошибкой:")
+                logger.error(err, exc_info=True)
                 continue
 
         fail_count = 0
