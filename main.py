@@ -14,7 +14,7 @@ DEVMAN_BASE_URL = "https://dvmn.org/"
 DEVMAN_API_BASE_URL = "https://dvmn.org/api/"
 DEVMAN_REVIEWS_URL = "user_reviews"
 DEVMAN_LONG_POLLING_URL = "long_polling"
-DEVMAN_TIMEOUT = 120
+DEVMAN_TIMEOUT = 10
 
 FAIL_ATTEMPTS_COUNT = 10
 SLEEP_TIME = 60 * 2
@@ -23,7 +23,7 @@ SLEEP_TIME = 60 * 2
 class MyLogsHandler(logging.Handler):
 
     def __init__(self, bot, chat_id):
-        super(MyLogsHandler, self).__init__()
+        super().__init__()
 
         self.bot = bot
         self.chat_id = chat_id
@@ -35,6 +35,32 @@ class MyLogsHandler(logging.Handler):
             chat_id=self.chat_id,
             text=log_entry
         )
+
+
+def make_messages(resp_data=None):
+    messages = []
+    new_attempts = resp_data["new_attempts"]
+
+    for attempt in new_attempts:
+        attempt_result = (
+            "К сожалению, в работе нашлись ошибки."
+            if attempt["is_negative"]
+            else "Преподавателю все понравилось, можно приступать к следующему уроку!"
+        )
+        lesson_title = attempt["lesson_title"]
+        lesson_url = attempt["lesson_url"]
+
+        message = f"""
+        У Вас проверили работу \u00AB{lesson_title}\u00BB
+
+        {attempt_result}
+
+        {urljoin(DEVMAN_BASE_URL, lesson_url)}
+        """
+
+        messages.append(dedent(message))
+
+    return messages
 
 
 def main():
@@ -76,8 +102,6 @@ def main():
             continue
 
         except ReadTimeout as err:
-            logger.error("Бот упал с ошибкой:")
-            logger.error(err, exc_info=True)
             continue
 
         except ConnectionError as err:
@@ -100,31 +124,14 @@ def main():
             params["timestamp"] = resp_data["timestamp_to_request"]
 
         if resp_data["status"] == "found":
-            messages = []
-            new_attempts = resp_data["new_attempts"]
-            for attempt in new_attempts:
-                attempt_result = (
-                    "К сожалению, в работе нашлись ошибки."
-                    if attempt["is_negative"]
-                    else "Преподавателю все понравилось, можно приступать к следующему уроку!"
-                )
-                lesson_title = attempt["lesson_title"]
-                lesson_url = attempt["lesson_url"]
+            messages = make_messages(resp_data=resp_data)
 
-                message = f"""
-                У Вас проверили работу \u00AB{lesson_title}\u00BB
-
-                {attempt_result}
-
-                {urljoin(DEVMAN_BASE_URL, lesson_url)}
-                """
-
-                messages.append(dedent(message))
             for message in messages:
                 bot.send_message(
                     chat_id=telegram_chat_id,
                     text=message
                 )
+
             params["timestamp"] = resp_data["last_attempt_timestamp"]
 
 
